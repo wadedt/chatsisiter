@@ -1,0 +1,1 @@
+export const websiteName = '网站名字'
