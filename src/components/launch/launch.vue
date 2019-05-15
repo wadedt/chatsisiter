@@ -8,7 +8,21 @@
 <script>
 export default {
     created(){
-        let user = localStorage.getItem('user');
+        let user = localStorage.getItem('token');
+        setTimeout(() => {
+            if(user){//如果是登录状态
+                this.$router.push({
+                    name: 'Home'
+                })
+            }else{
+                this.$router.push({
+                    name: 'Login'
+                })
+            }
+        },3000)
+    },
+    activated(){
+        let user = localStorage.getItem('token');
         setTimeout(() => {
             if(user){//如果是登录状态
                 this.$router.push({

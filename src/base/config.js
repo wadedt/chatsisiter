@@ -1,0 +1,1 @@
+export const apidomain ='http://localhost/myweb/index.php'

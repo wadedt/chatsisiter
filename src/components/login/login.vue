@@ -1,5 +1,6 @@
 <template>
     <div>
+        <head-simple :title="title"></head-simple>
         <div class="login">
             <div class="title">聊你妹</div>
             <div class="wrapper">
@@ -7,38 +8,104 @@
                     <img :src="avatar">
                 </div>
                 <div class="ipt-group">
-                    <i></i>
+                    <i class="iconfont icon-mobile"></i>
                     <input type="text" v-model="mobile" placeholder="手机号">
                 </div>
                 <div class="ipt-group">
-                    <i></i>
+                    <i class="iconfont icon-ziyuanxhdpi"></i>
                     <input type="password" v-model="pwd" placeholder="密码">
                 </div>
                 <div class="submit-wrappepr">
-                    <span class="submit">登录</span>
+                    <span class="submit" @click="login">登录</span>
                 </div>
             </div>
             <div class="toregister">
                 没有账号去<span @click="toreg" class="register">注册</span>
             </div>
+            <div class="loading-container" v-show="submitFlag">
+                <toast :title="toastMsg"></toast>
+            </div>
         </div>
     </div>
 </template>
 <script>
+import HeadSimple from '@/components/head/headSimple'
+import Toast from '@/base/toast/toast'
+import {loginAction} from '@/api/user'
+
 export default {
     data() {
         return{
+            title: '登录',
             mobile: '',
             pwd: '',
+            submitFlag: false,
+            toastMsg: '登录中，请稍后',
             avatar: 'https://timgsa.baidu.com/timg?image&quality=80&size=b9999_10000&sec=1557124037&di=d3f0103ee652627e6ddee934c9a79801&imgtype=jpg&er=1&src=http%3A%2F%2Fb-ssl.duitang.com%2Fuploads%2Fitem%2F201705%2F06%2F20170506155406_2yuUk.thumb.700_0.jpeg'
         }
+    },
+    activated: function () {
+        this.$setgoindex()
+        if(localStorage.getItem('token')){
+            this.$router.push({
+                name: 'Home'
+            })
+        }
+        this.mobile = ''
+        this.pwd = ''
     },
     methods: {
         toreg(){
             this.$router.push({
                 name: 'Register'
             })
+        },
+        login(){
+            if(this.mobile.length!=11){
+                this._showToast('手机号码格式不正确')
+                return
+            }
+            if(!(this.pwd.length>=6 && this.pwd.length<=12)){
+                this._showToast('密码格式不正确')
+                return
+            }
+            if(!this.submitFlag && this.mobile && this.pwd){
+                this._showToast('登录中，请稍后',false)
+                this._login()
+            }
+        },
+        _login(){
+            loginAction(this.mobile,this.pwd).then((res) => {
+                let redirect = ''
+                if(res.ERR_CODE == 0){
+                    redirect = 'Home'
+                }
+                if(res.token){
+                    localStorage.setItem('token', res.token);
+                }
+                this._showToast(res.msg,true,redirect)
+            }).catch(() => {
+                this._showToast('网络出错')
+            })
+        },
+        _showToast(msg,next=true,redirect=''){//msg提示信息。next是否一秒后消失。redirect提示信息消失后重定向地址,传router配置对应的name值
+            this.toastMsg = msg
+            this.submitFlag = true
+            if(next){
+                setTimeout(()=> {
+                    this.submitFlag = false
+                    if(redirect){
+                        this.$router.push({
+                            name: redirect
+                        })
+                    }
+                },3000)
+            }
         }
+    },
+    components: {
+        HeadSimple,
+        Toast
     }
 }
 </script>
@@ -79,10 +146,22 @@ export default {
                     width 100%
             .ipt-group
                 border-bottom 0.4vw solid #64b5e7
+                position relative
+                margin-bottom 4vw
+                i
+                    line-height 10vw
+                    position absolute
+                    bottom 0
+                    width 10vw
+                    text-align center
+                    color #31436b
+                    &.icon-mobile
+                        font-size 22px
                 input 
                     background transparent
                     width 100%
-                    line-height 12vw
+                    line-height 10vw
+                    padding-left 12vw
                     border none
                     color #fff
                     &:focus
@@ -114,6 +193,12 @@ export default {
             font-size 3.4vw
             .register
                 color #ee9043
+        .loading-container
+            position: absolute
+            width: 100%
+            top: 50%
+            transform: translateY(-50%)
+            text-align center
         
 
 </style>
